@@ -1,0 +1,59 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 24% 14%;
+    --card: 0 0% 100%;
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 9% 44%;
+    --border: 220 13% 89%;
+    --primary: 18 92% 44%;
+    --primary-foreground: 0 0% 100%;
+    --success: 160 78% 34%;
+    --warning: 40 92% 48%;
+    --danger: 0 76% 54%;
+    --sidebar: 221 28% 15%;
+    --sidebar-foreground: 220 14% 96%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-heading tracking-normal;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-card border rounded-lg shadow-soft;
+  }
+
+  .btn-primary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border bg-white px-4 text-sm font-semibold transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .input {
+    @apply h-10 w-full rounded-md border bg-white px-3 text-sm outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15;
+  }
+
+  .label {
+    @apply text-xs font-semibold uppercase tracking-normal text-muted-foreground;
+  }
+}
