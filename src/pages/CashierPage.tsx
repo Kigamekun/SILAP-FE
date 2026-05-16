@@ -58,6 +58,16 @@ export function CashierPage() {
     onError: (err) => setError(err.message),
   });
 
+  const burstCaptureMutation = useMutation({
+    mutationFn: (files: File[]) => api.uploadPassengerCaptureBurst(activePassenger!.id, files),
+    onSuccess: async () => {
+      setError(null);
+      await queryClient.invalidateQueries({ queryKey: ["captures", activePassenger?.id] });
+      await queryClient.invalidateQueries({ queryKey: ["passengers"] });
+    },
+    onError: (err) => setError(err.message),
+  });
+
   const approveMutation = useMutation({
     mutationFn: () => api.approvePassenger(activePassenger!.id),
     onSuccess: async (passenger) => {
@@ -167,18 +177,28 @@ export function CashierPage() {
             </div>
 
             <CameraCapture
-              busy={captureMutation.isPending || activePassenger.status === "approved"}
+              busy={captureMutation.isPending || burstCaptureMutation.isPending || activePassenger.status === "approved"}
               facingMode="user"
               captureCount={captures.length}
               maxCaptures={target}
               autoIntervalMs={1400}
+              burstCapture
+              burstFrameCount={100}
+              burstSelectedCount={target}
+              burstIntervalMs={45}
               showUpload={activePassenger.status !== "approved" && captures.length < target}
               uploadLabel="Upload uji"
               onCapture={(file) => captureMutation.mutate(file)}
+              onBurstCapture={(files) => burstCaptureMutation.mutate(files)}
             />
 
             <div className="flex flex-wrap items-center gap-2">
-              <button className="btn-primary" type="button" disabled={captures.length < minimum || approveMutation.isPending || activePassenger.status === "approved"} onClick={() => approveMutation.mutate()}>
+              <button
+                className="btn-primary"
+                type="button"
+                disabled={captures.length < minimum || burstCaptureMutation.isPending || approveMutation.isPending || activePassenger.status === "approved"}
+                onClick={() => approveMutation.mutate()}
+              >
                 <BadgeCheck className="h-4 w-4" />
                 Approve & cetak tiket
               </button>

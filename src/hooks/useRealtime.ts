@@ -21,6 +21,10 @@ export function useRealtime(queryClient: QueryClient) {
 
     function invalidate(event: RealtimeEvent) {
       setLastEvent(event);
+      if (event.type === "camera.scan.progress") {
+        return;
+      }
+
       queryClient.invalidateQueries({ queryKey: ["summary"] });
 
       if (event.type.startsWith("passenger.")) {

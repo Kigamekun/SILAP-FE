@@ -58,7 +58,7 @@ export function AlertList({ alerts }: AlertListProps) {
             <p className="mt-2 text-sm">{alert.message}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               Confidence wajah {Math.round(alert.face_confidence * 100)}%
-              {alert.match_distance !== null ? ` · Jarak match ${alert.match_distance.toFixed(3)}` : ""}
+              {alert.match_distance !== null ? ` · Skor kecocokan ${alert.match_distance.toFixed(3)}` : ""}
             </p>
           </div>
           <div className="flex items-start gap-2 md:flex-col">

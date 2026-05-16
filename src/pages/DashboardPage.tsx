@@ -52,7 +52,8 @@ export function DashboardPage() {
                 <StatusBadge status={summary?.model_status.detector_loaded ? "online" : "pending"} />
               </div>
               <p className="break-words rounded-md bg-muted p-3 text-xs text-muted-foreground">
-                {summary?.model_status.detector_backend ?? "Memuat"} · {summary?.model_status.detector_error ?? "Checkpoint siap"}
+                {summary?.model_status.detector_backend ?? "Memuat"} ·{" "}
+                {summary?.model_status.detector_error ?? modelPathLabel(summary?.model_status.detector_model_path)}
               </p>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Recognition</span>
@@ -88,4 +89,9 @@ export function DashboardPage() {
       </div>
     </div>
   );
+}
+
+function modelPathLabel(path?: string): string {
+  if (!path) return "Checkpoint siap";
+  return path.split("/").slice(-4).join("/");
 }

@@ -18,6 +18,17 @@ export type ModelStatus = {
   alert_detection_threshold: number;
   alert_candidate_match_threshold: number;
   alert_candidate_ttl_seconds: number;
+  camera_distance_face_width_m: number;
+  camera_distance_face_height_m: number;
+  camera_distance_horizontal_fov_degrees: number;
+  monitoring_burst_max_uploads: number;
+  monitoring_temporal_ttl_seconds: number;
+  monitoring_temporal_max_samples: number;
+  monitoring_temporal_min_samples: number;
+  monitoring_field_enrollment_enabled: boolean;
+  monitoring_field_enrollment_threshold: number;
+  monitoring_field_enrollment_min_confidence: number;
+  monitoring_field_enrollment_max_captures: number;
 };
 
 export type Passenger = {
@@ -94,6 +105,7 @@ export type Detection = {
   match_status: "ticketed" | "observing" | "stowaway";
   passenger: Passenger | null;
   match_distance: number | null;
+  estimated_distance_m?: number | null;
   alert_id: number | null;
   unknown_detection_count: number | null;
   alert_threshold: number | null;
@@ -131,10 +143,16 @@ export function realtimeUrl(): string {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, init);
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, init);
+  } catch {
+    throw new Error(`Backend tidak bisa dihubungi di ${API_BASE_URL}. Pastikan service backend aktif.`);
+  }
+
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
-    const detail = payload?.detail ?? "Request gagal.";
+    const detail = payload?.detail ?? `Request gagal (${response.status}).`;
     throw new Error(Array.isArray(detail) ? detail.map((item) => item.msg).join(", ") : detail);
   }
   if (response.status === 204) {
@@ -146,6 +164,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 function upload(path: string, file: File): Promise<unknown> {
   const formData = new FormData();
   formData.append("file", file);
+  return request(path, { method: "POST", body: formData });
+}
+
+function uploadMany(path: string, files: File[]): Promise<unknown> {
+  const formData = new FormData();
+  files.forEach((file) => formData.append("files", file));
   return request(path, { method: "POST", body: formData });
 }
 
@@ -167,6 +191,8 @@ export const api = {
   passengerCaptures: (passengerId: number) => request<FaceCapture[]>(`/passengers/${passengerId}/captures`),
   uploadPassengerCapture: (passengerId: number, file: File) =>
     upload(`/passengers/${passengerId}/captures`, file) as Promise<FaceCapture>,
+  uploadPassengerCaptureBurst: (passengerId: number, files: File[]) =>
+    uploadMany(`/passengers/${passengerId}/captures/burst`, files) as Promise<FaceCapture[]>,
   approvePassenger: (passengerId: number) => request<Passenger>(`/passengers/${passengerId}/approve`, { method: "POST" }),
   deletePassenger: (passengerId: number) => request<void>(`/passengers/${passengerId}`, { method: "DELETE" }),
   buses: () => request<Bus[]>("/buses"),
@@ -183,6 +209,7 @@ export const api = {
       body: JSON.stringify(payload),
     }),
   scanCamera: (cameraId: number, file: File) => upload(`/cameras/${cameraId}/scan`, file) as Promise<ScanResult>,
+  scanCameraBurst: (cameraId: number, files: File[]) => uploadMany(`/cameras/${cameraId}/scan/burst`, files) as Promise<ScanResult>,
   alerts: (status?: string) => request<Alert[]>(status ? `/alerts?status_filter=${status}` : "/alerts"),
   updateAlert: (alertId: number, status: Alert["status"]) =>
     request<Alert>(`/alerts/${alertId}`, {
